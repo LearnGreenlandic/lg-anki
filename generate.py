@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
-import argparse
+import base64
 import genanki
 import glob
+import hashlib
 import html
 import os
 import random
 import regex as re
-import sys
-from collections import defaultdict
+import subprocess
 from pathlib import Path
+
+media = {}
+decks = {}
+
+dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(dir)
+subprocess.run(['rm', '-rf', 'tmp'])
+os.makedirs(f'tmp/media/', exist_ok=True)
 
 _uniq_id = 1177320980
 def uniq_id():
@@ -18,8 +26,18 @@ def uniq_id():
 
 # Deterministic random
 random.seed(_uniq_id)
-def rand_id():
-	return '{0:0>4X}'.format(random.randint(1, (1 << 16) - 1))
+
+def hash(s):
+    return base64.b64encode(hashlib.sha1(s).digest(), b'Xx').decode('UTF-8').rstrip('=')
+
+def media_uniq(fn):
+	global media
+	h = hash(Path(fn).read_bytes())[0:8]
+	ext = os.path.splitext(fn)[1]
+	if h not in media:
+		media[h] = f'tmp/media/{h}{ext}'
+		os.symlink(f'../../{fn}', media[h])
+	return os.path.basename(media[h])
 
 class Note_12(genanki.Note):
 	@property
@@ -30,9 +48,6 @@ class Note_123(genanki.Note):
 	@property
 	def guid(self):
 		return genanki.guid_for(self.fields[1], self.fields[2], self.fields[3])
-
-media = []
-decks = {}
 
 
 ### LG1 1 Pronounce
@@ -48,6 +63,7 @@ model_1101 = genanki.Model(
 		{'name': 'Hint'},
 		{'name': 'Sound'},
 	],
+	sort_field_index=0,
 	templates=[
 		{
 			'name': 'Pronounce 1.1',
@@ -65,6 +81,7 @@ model_1102 = genanki.Model(
 		{'name': 'Hint'},
 		{'name': 'Sound'},
 	],
+	sort_field_index=0,
 	templates=[
 		{
 			'name': 'Pronounce 1.2',
@@ -73,18 +90,27 @@ model_1102 = genanki.Model(
 		},
 	])
 
+notes = []
+notes2 = []
 ws = Path('d/lg1/pronounce/words.txt').read_text().strip().split('\n')
 for word in ws:
 	w = word.split('\t')
-	media.append(f'd/lg1/pronounce/{w[0]}.mp3')
-	fields = [html.escape(f) for f in [rand_id(), w[0], f'[{w[1]}]', f'[sound:{w[0]}.mp3]']]
+	m = media_uniq(f'd/lg1/pronounce/{w[0]}.mp3')
+	fields = [html.escape(f) for f in ['', w[0], f'[{w[1]}]', f'[sound:{m}]']]
 
-	note = Note_123(model=model_1101, fields=fields)
-	decks[1101].add_note(note)
+	notes.append(Note_123(model=model_1101, fields=fields))
 
 	fields = fields.copy()
-	fields[0] = rand_id()
-	note = Note_123(model=model_1102, fields=fields)
+	notes2.append(Note_123(model=model_1102, fields=fields))
+
+random.shuffle(notes)
+for i,note in enumerate(notes):
+	note.fields[0] = '{0:0>3}'.format(i+1)
+	decks[1101].add_note(note)
+
+random.shuffle(notes2)
+for i,note in enumerate(notes2):
+	note.fields[0] = '{0:0>3}'.format(i+1)
 	decks[1102].add_note(note)
 
 
@@ -102,6 +128,7 @@ model_1201 = genanki.Model(
 		{'name': 'Word'},
 		{'name': 'Consonant'},
 	],
+	sort_field_index=0,
 	templates=[
 		{
 			'name': 'Perception 1.1',
@@ -118,6 +145,7 @@ model_1202 = genanki.Model(
 		{'name': 'Sound'},
 		{'name': 'Word'},
 	],
+	sort_field_index=0,
 	templates=[
 		{
 			'name': 'Perception 1.2',
@@ -134,6 +162,7 @@ model_1203 = genanki.Model(
 		{'name': 'Sound'},
 		{'name': 'Word'},
 	],
+	sort_field_index=0,
 	templates=[
 		{
 			'name': 'Perception 1.3',
@@ -142,30 +171,45 @@ model_1203 = genanki.Model(
 		},
 	])
 
+notes = []
 for f in glob.glob('d/lg1/listening/1/*.mp3'):
-	media.append(f)
+	m = media_uniq(f)
 	word = os.path.basename(f).replace('.mp3', '')
 	cut = word[1:-1]
 	for c in ['m', 'p', 'q', 's', 'l', 'k', 'n']:
 		if c in cut:
-			fields = [rand_id(), f'[sound:{word}.mp3]', word, c]
-			note = Note_123(model=model_1201, fields=fields)
-			decks[1201].add_note(note)
+			fields = ['', f'[sound:{m}]', word, c]
+			notes.append(Note_123(model=model_1201, fields=fields))
 
+random.shuffle(notes)
+for i,note in enumerate(notes):
+	note.fields[0] = '{0:0>3}'.format(i+1)
+	decks[1201].add_note(note)
+
+notes = []
 for f in glob.glob('d/lg1/listening/2/*.mp3'):
-	media.append(f)
+	m = media_uniq(f)
 	word = os.path.basename(f).replace('.mp3', '')
-	fields = [rand_id(), f'[sound:{word}.mp3]', word]
-	note = Note_12(model=model_1202, fields=fields)
+	fields = ['', f'[sound:{m}]', word]
+	notes.append(Note_12(model=model_1202, fields=fields))
+
+random.shuffle(notes)
+for i,note in enumerate(notes):
+	note.fields[0] = '{0:0>3}'.format(i+1)
 	decks[1202].add_note(note)
 
+notes = []
 for f in glob.glob('d/lg1/listening/3/*.mp3'):
-	media.append(f)
+	m = media_uniq(f)
 	word = os.path.basename(f).replace('.mp3', '')
-	fields = [rand_id(), f'[sound:{word}.mp3]', word]
-	note = Note_12(model=model_1203, fields=fields)
+	fields = ['', f'[sound:{m}]', word]
+	notes.append(Note_12(model=model_1203, fields=fields))
+
+random.shuffle(notes)
+for i,note in enumerate(notes):
+	note.fields[0] = '{0:0>3}'.format(i+1)
 	decks[1203].add_note(note)
 
 package = genanki.Package(decks.values())
-package.media_files = media
+package.media_files = media.values()
 package.write_to_file('Learn Greenlandic.apkg')
