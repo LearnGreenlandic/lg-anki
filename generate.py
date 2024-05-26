@@ -39,6 +39,12 @@ def media_uniq(fn):
 		os.symlink(f'../../{fn}', media[h])
 	return os.path.basename(media[h])
 
+def add_notes(deck, notes):
+	random.shuffle(notes)
+	for i,note in enumerate(notes):
+		note.fields[0] = '{0:0>3}'.format(i+1)
+		deck.add_note(note)
+
 class Note_12(genanki.Note):
 	@property
 	def guid(self):
@@ -103,15 +109,8 @@ for word in ws:
 	fields = fields.copy()
 	notes2.append(Note_123(model=model_1102, fields=fields))
 
-random.shuffle(notes)
-for i,note in enumerate(notes):
-	note.fields[0] = '{0:0>3}'.format(i+1)
-	decks[1101].add_note(note)
-
-random.shuffle(notes2)
-for i,note in enumerate(notes2):
-	note.fields[0] = '{0:0>3}'.format(i+1)
-	decks[1102].add_note(note)
+add_notes(decks[1101], notes)
+add_notes(decks[1102], notes2)
 
 
 ### LG1 2 Sound perception
@@ -181,10 +180,7 @@ for f in glob.glob('d/lg1/listening/1/*.mp3'):
 			fields = ['', f'[sound:{m}]', word, c]
 			notes.append(Note_123(model=model_1201, fields=fields))
 
-random.shuffle(notes)
-for i,note in enumerate(notes):
-	note.fields[0] = '{0:0>3}'.format(i+1)
-	decks[1201].add_note(note)
+add_notes(decks[1201], notes)
 
 notes = []
 for f in glob.glob('d/lg1/listening/2/*.mp3'):
@@ -193,10 +189,7 @@ for f in glob.glob('d/lg1/listening/2/*.mp3'):
 	fields = ['', f'[sound:{m}]', word]
 	notes.append(Note_12(model=model_1202, fields=fields))
 
-random.shuffle(notes)
-for i,note in enumerate(notes):
-	note.fields[0] = '{0:0>3}'.format(i+1)
-	decks[1202].add_note(note)
+add_notes(decks[1202], notes)
 
 notes = []
 for f in glob.glob('d/lg1/listening/3/*.mp3'):
@@ -205,10 +198,7 @@ for f in glob.glob('d/lg1/listening/3/*.mp3'):
 	fields = ['', f'[sound:{m}]', word]
 	notes.append(Note_12(model=model_1203, fields=fields))
 
-random.shuffle(notes)
-for i,note in enumerate(notes):
-	note.fields[0] = '{0:0>3}'.format(i+1)
-	decks[1203].add_note(note)
+add_notes(decks[1203], notes)
 
 package = genanki.Package(decks.values())
 package.media_files = media.values()

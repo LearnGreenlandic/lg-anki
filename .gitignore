@@ -1,3 +1,4 @@
 /d
 /tmp
+*.code-workspace
 *.apkg
