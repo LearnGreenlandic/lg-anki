@@ -42,8 +42,13 @@ def media_uniq(fn):
 def add_notes(deck, notes):
 	random.shuffle(notes)
 	for i,note in enumerate(notes):
-		note.fields[0] = '{0:0>3}'.format(i+1)
+		note.fields[0] = '{0:0>3}0'.format(i+1)
 		deck.add_note(note)
+
+class Note_1(genanki.Note):
+	@property
+	def guid(self):
+		return genanki.guid_for(self.fields[1])
 
 class Note_12(genanki.Note):
 	@property
@@ -55,6 +60,31 @@ class Note_123(genanki.Note):
 	def guid(self):
 		return genanki.guid_for(self.fields[1], self.fields[2], self.fields[3])
 
+model_info = genanki.Model(
+	uniq_id(),
+	'LG Infocard',
+	fields=[
+		{'name': 'Sort'},
+		{'name': 'Uniq'},
+		{'name': 'Text'},
+	],
+	sort_field_index=0,
+	templates=[
+		{
+			'name': 'LG Infocard',
+			'qfmt': '<div style="text-align: center">{{Text}}</div>',
+			'afmt': '{{FrontSide}}',
+		},
+	])
+
+decks[1000] = genanki.Deck(uniq_id(), 'Learn Greenlandic')
+decks[1000].add_note(Note_1(model=model_info, fields=['0001', 'I0100',
+'''<h1>Learn Greenlandic</h1>
+<h2>Greenlandic for Foreigners by Per Langgård</h2>
+<p>The material in these decks is adapted from <a href="https://learn.gl/o/">Learn Greenlandic Online</a> via <a href="https://github.com/LearnGreenlandic/lg-anki">LG Anki @ GitHub</a>.</p>
+<p>It is strongly recommended that you <a href="https://learngreenlandic.com/online/lg1/1/">watch the first lecture</a> before studying this material.</p>
+<p><small>Suspend this card (hit @ or ! or use menus)</small></p>
+''']))
 
 ### LG1 1 Pronounce
 decks[1101] = genanki.Deck(uniq_id(), 'Learn Greenlandic::LG1 101 Pronounce (speak)')
@@ -108,6 +138,20 @@ for word in ws:
 
 	fields = fields.copy()
 	notes2.append(Note_123(model=model_1102, fields=fields))
+
+decks[1101].add_note(Note_1(model=model_info, fields=['0001', 'I0110',
+'''<h1>LG1 Lecture 1 The New Sounds</h1>
+<p>These cards will train your pronunciation of the Greenlandic syllables.</p>
+<p>It is strongly recommended that you <a href="https://learngreenlandic.com/online/lg1/1/">watch the first lecture</a> before studying this material.</p>
+<p><small>Suspend this card (hit @ or ! or use menus)</small></p>
+''']))
+
+decks[1102].add_note(Note_1(model=model_info, fields=['0001', 'I0120',
+'''<h1>LG1 Lecture 1 The New Sounds</h1>
+<p>These cards will train your ability to distinguish the spoken Greenlandic syllables.</p>
+<p>It is strongly recommended that you <a href="https://learngreenlandic.com/online/lg1/1/">watch the first lecture</a> before studying this material.</p>
+<p><small>Suspend this card (hit @ or ! or use menus)</small></p>
+''']))
 
 add_notes(decks[1101], notes)
 add_notes(decks[1102], notes2)
@@ -180,6 +224,13 @@ for f in glob.glob('d/lg1/listening/1/*.mp3'):
 			fields = ['', f'[sound:{m}]', word, c]
 			notes.append(Note_123(model=model_1201, fields=fields))
 
+decks[1201].add_note(Note_1(model=model_info, fields=['0001', 'I0200',
+'''<h1>LG1 Lecture 2 Typical Mistakes</h1>
+<p>These cards will train your ability to distinguish double consonants in spoken Greenlandic.</p>
+<p>It is strongly recommended that you <a href="https://learngreenlandic.com/online/lg1/2/">watch the second lecture</a> before studying this material.</p>
+<p><small>Suspend this card (hit @ or ! or use menus)</small></p>
+''']))
+
 add_notes(decks[1201], notes)
 
 notes = []
@@ -188,6 +239,13 @@ for f in glob.glob('d/lg1/listening/2/*.mp3'):
 	word = os.path.basename(f).replace('.mp3', '')
 	fields = ['', f'[sound:{m}]', word]
 	notes.append(Note_12(model=model_1202, fields=fields))
+
+decks[1202].add_note(Note_1(model=model_info, fields=['0001', 'I0210',
+'''<h1>LG1 Lecture 2 Typical Mistakes</h1>
+<p>These cards will train your ability to distinguish the letter 'r' in spoken Greenlandic.</p>
+<p>It is strongly recommended that you <a href="https://learngreenlandic.com/online/lg1/2/">watch the second lecture</a> before studying this material.</p>
+<p><small>Suspend this card (hit @ or ! or use menus)</small></p>
+''']))
 
 add_notes(decks[1202], notes)
 
@@ -198,8 +256,14 @@ for f in glob.glob('d/lg1/listening/3/*.mp3'):
 	fields = ['', f'[sound:{m}]', word]
 	notes.append(Note_12(model=model_1203, fields=fields))
 
+decks[1202].add_note(Note_1(model=model_info, fields=['0001', 'I0220',
+'''<h1>LG1 Lecture 2 Typical Mistakes</h1>
+<p>These cards will train your ability to distinguish whether spoken Greenlandic contains 'tt', 'ts, or just 't'.</p>
+<p>It is strongly recommended that you <a href="https://learngreenlandic.com/online/lg1/2/">watch the second lecture</a> before studying this material.</p>
+<p><small>Suspend this card (hit @ or ! or use menus)</small></p>
+''']))
+
 add_notes(decks[1203], notes)
 
-package = genanki.Package(decks.values())
-package.media_files = media.values()
+package = genanki.Package(decks.values(), media_files=media.values())
 package.write_to_file('Learn Greenlandic.apkg')
